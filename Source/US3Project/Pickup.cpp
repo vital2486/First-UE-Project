@@ -21,6 +21,7 @@ void APickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 		{
 			Main->IncrementCoins(CoinCount);
 		}
+		Destroy();
 	}
 }
 
