@@ -5,8 +5,11 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Animation/AnimInstance.h"
 #include "Engine/World.h"
+#include "Weapon.h"
 
 // Sets default values
 AMain::AMain()
@@ -50,6 +53,7 @@ AMain::AMain()
 	MinSprintStamina = 50.f;
 
 	bShiftKeyPressed = false;
+	bLMBDown = false;
 
 	MovementStatus = EMovementStatus::EMS_Normal;
 	StaminaStatus = EStaminaStatus::ESS_Normal;
@@ -172,11 +176,14 @@ void AMain::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AMain::ShiftKeyPressed);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AMain::ShiftKeyReleased);
+	PlayerInputComponent->BindAction("LMB", IE_Pressed, this, &AMain::LMBDown);
+	PlayerInputComponent->BindAction("LMB", IE_Released, this, &AMain::LMBUp);
+	
 }
 
 void AMain::MoveForward(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
@@ -188,7 +195,7 @@ void AMain::MoveForward(float Value)
 
 void AMain::MoveRight(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
@@ -206,6 +213,45 @@ void AMain::TurnAtRate(float Rate)
 void AMain::LookupRate(float Rate)
 {
 	AddControllerYawInput(Rate * BaseLookupRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AMain::Attack()
+{
+	if (!bAttacking)
+	{
+		bAttacking = true;
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance && CombatMontage)
+		{
+			int32 Section = FMath::RandRange(0, 1);
+			switch(Section)
+			{
+			case 0:
+				AnimInstance->Montage_Play(CombatMontage, 2.2f);
+				AnimInstance->Montage_JumpToSection(FName("Attack_1"), CombatMontage);
+				break;
+			case 1:
+				AnimInstance->Montage_Play(CombatMontage, 1.8f);
+				AnimInstance->Montage_JumpToSection(FName("Attack_2"), CombatMontage);
+				break;
+			default:
+				;
+			}
+			
+		}
+	}
+}
+
+void AMain::AttackEnd()
+{
+	bAttacking = false;
+
+	// 공격 버튼을 계속 누르고 있으면 공격이 끝나자 마자 다시 공격하게 한다.
+	if (bLMBDown)
+	{
+		Attack();
+	}
 }
 
 void AMain::DecrementHealth(float Amount)
@@ -244,6 +290,19 @@ void AMain::SetMovementStatus(EMovementStatus Status)
 	}
 }
 
+void AMain::SetEquippedWeapon(AWeapon* WeaponToSet)
+{
+	if (EquippedWeapon != WeaponToSet)
+	{
+		if (EquippedWeapon)
+		{
+			EquippedWeapon->Destroy();
+		}
+		EquippedWeapon = WeaponToSet;
+	}
+}
+	
+
 void AMain::ShiftKeyPressed()
 {
 	bShiftKeyPressed = true;
@@ -252,4 +311,28 @@ void AMain::ShiftKeyPressed()
 void AMain::ShiftKeyReleased()
 {
 	bShiftKeyPressed = false;
+}
+
+void AMain::LMBDown()
+{
+	bLMBDown = true;
+
+	if (ActiveOverlappingItem)
+	{
+		AWeapon* Weapon = Cast<AWeapon>(ActiveOverlappingItem);
+		if (Weapon)
+		{
+			Weapon->Equip(this);
+			SetActiveOverlappingItem(nullptr);
+		}
+	}
+	else if (EquippedWeapon)
+	{
+		Attack();
+	}
+}
+
+void AMain::LMBUp()
+{
+	bLMBDown = false;
 }

@@ -30,10 +30,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Sounds")
 	class USoundCue* OverlapSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Itme | ItemProperties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | ItemProperties")
 	float RotationRate;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Itme | ItemProperties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | ItemProperties")
 	bool bRotate;
 
 protected:

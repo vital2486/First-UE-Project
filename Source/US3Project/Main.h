@@ -58,6 +58,12 @@ public:
 	class UCameraComponent* FollowCamera;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Items")
+	class UAnimMontage* CombatMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Items")
+	class AItem* ActiveOverlappingItem;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Items")
 	class AWeapon* EquippedWeapon;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -77,7 +83,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Stats")
 	int32 Coins;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anims")
+	bool bAttacking;
+
 	bool bShiftKeyPressed;
+	bool bLMBDown;
 
 protected:
 	// Called when the game starts or when spawned
@@ -96,6 +106,11 @@ public:
 	void TurnAtRate(float Rate);
 	void LookupRate(float Rate);
 
+	void Attack();
+
+	UFUNCTION(BlueprintCallable)
+	void AttackEnd();
+
 	void DecrementHealth(float Amount);
 	void Die();
 
@@ -103,13 +118,21 @@ public:
 
 	void SetMovementStatus(EMovementStatus Status);
 
+	void SetEquippedWeapon(AWeapon* WeaponToSet);
+
 	void ShiftKeyPressed();
 	void ShiftKeyReleased();
+
+	void LMBDown();
+	void LMBUp();
+
+	
 
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	FORCEINLINE void SetStaminaStatus(EStaminaStatus Status) { StaminaStatus = Status; }
 	
-	FORCEINLINE void SetEquippedWeapon(AWeapon* WeaponToSet) { EquippedWeapon = WeaponToSet; }
+	FORCEINLINE void SetActiveOverlappingItem(AItem* Item) { ActiveOverlappingItem = Item; }
+	FORCEINLINE AWeapon* GetEquippedWeapon() { return EquippedWeapon; }
 };
