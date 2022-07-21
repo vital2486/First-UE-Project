@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "MainAnimInstance.generated.h"
+#include "EnemyAnimInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class US3PROJECT_API UMainAnimInstance : public UAnimInstance
+class US3PROJECT_API UEnemyAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 	
@@ -23,13 +23,10 @@ public :
 	float MovementSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	bool bIsInAir;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	class APawn* Pawn;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
-	class AMain* Main;
+	class AEnemy* Enemy;
 
 	//Tick함수 처럼 매 Frame마다 Variable을 Update
 	UFUNCTION(BlueprintCallable, Category = AnimationProperties)
