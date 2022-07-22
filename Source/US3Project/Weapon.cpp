@@ -36,7 +36,7 @@ void AWeapon::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 {
 	Super::OnOverlapEnd(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 
-	if (OtherActor)
+	if ((WeaponState == EWeaponState::EWS_Pickup) && OtherActor)
 	{
 		AMain* Main = Cast<AMain>(OtherActor);
 
@@ -64,6 +64,7 @@ void AWeapon::Equip(AMain* Char)
 			RightHandSocket->AttachActor(this, Char->GetMesh());
 			Char->SetEquippedWeapon(this);
 			Char->SetActiveOverlappingItem(nullptr);
+			SetWeaponState(EWeaponState::EWS_Equipped);
 			bRotate = false; // item 상태일때는 회전하다가 캐릭터가 Equip하면 회전을 멈춘다.
 		}
 
