@@ -2,12 +2,16 @@
 
 
 #include "Main.h"
+#include "Enemy.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Animation/AnimInstance.h"
+#include "Sound/SoundCue.h"
 #include "Engine/World.h"
 #include "Weapon.h"
 
@@ -48,12 +52,14 @@ AMain::AMain()
 
 	RunningSpeed = 650.f;
 	SprintingSpeed = 950.f;
+	InterpSpeed = 15.f;
 
 	StaminaDrainRate = 25.f;
 	MinSprintStamina = 50.f;
 
 	bShiftKeyPressed = false;
 	bLMBDown = false;
+	bInterpToEnemy = false;
 
 	MovementStatus = EMovementStatus::EMS_Normal;
 	StaminaStatus = EStaminaStatus::ESS_Normal;
@@ -157,6 +163,14 @@ void AMain::Tick(float DeltaTime)
 	default : 
 		;
 	}
+
+	if (bInterpToEnemy && CombatTarget)
+	{
+		FRotator LookAtYaw = GetLookAtRotationYaw(CombatTarget->GetActorLocation());
+		FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), LookAtYaw, DeltaTime, InterpSpeed);
+
+		SetActorRotation(InterpRotation);
+	}
 }
 
 // Called to bind functionality to input
@@ -220,6 +234,8 @@ void AMain::Attack()
 	if (!bAttacking)
 	{
 		bAttacking = true;
+		//공격할 때 Enemy를 target으로 인지하여 바라보도록 한다.
+		SetInterpToEnemy(true);
 
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		if (AnimInstance && CombatMontage)
@@ -238,7 +254,10 @@ void AMain::Attack()
 			default:
 				;
 			}
-			
+		}
+		if (EquippedWeapon->SwingSound)
+		{
+			UGameplayStatics::PlaySound2D(this, EquippedWeapon->SwingSound);
 		}
 	}
 }
@@ -246,11 +265,20 @@ void AMain::Attack()
 void AMain::AttackEnd()
 {
 	bAttacking = false;
+	SetInterpToEnemy(false);
 
 	// 공격 버튼을 계속 누르고 있으면 공격이 끝나자 마자 다시 공격하게 한다.
 	if (bLMBDown)
 	{
 		Attack();
+	}
+}
+
+void AMain::PlaySwingSound()
+{
+	if (EquippedWeapon->SwingSound)
+	{
+		UGameplayStatics::PlaySound2D(this, EquippedWeapon->SwingSound);
 	}
 }
 
@@ -335,4 +363,17 @@ void AMain::LMBDown()
 void AMain::LMBUp()
 {
 	bLMBDown = false;
+}
+
+void AMain::SetInterpToEnemy(bool Interp)
+{
+	bInterpToEnemy = Interp;
+}
+
+FRotator AMain::GetLookAtRotationYaw(FVector Target)
+{
+	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Target);
+	FRotator LookAtRotationYaw(0.f, LookAtRotation.Yaw, 0.f);
+
+	return LookAtRotationYaw;
 }
