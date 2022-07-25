@@ -22,7 +22,22 @@ public :
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UUserWidget* HUDOverlay;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<UUserWidget> WEnemyHealthBar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets")
+	UUserWidget* EnemyHealthBar;
+
+	FVector EnemyLocation;
+
+	bool bEnemyHealthBarVisible;
+
+	void DisplayEnemyHealthBar();
+	void RemoveEnemyHealthBar();
+
 protected : 
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+
 };

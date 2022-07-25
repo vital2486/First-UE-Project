@@ -57,6 +57,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Controller")
+	class AMainPlayerController* MainPlayerController;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
+	FVector CombatTargetLocation;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Items")
 	class UAnimMontage* CombatMontage;
 
@@ -96,6 +102,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anims")
 	bool bAttacking;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bHasCombatTarget;
 
 	bool bShiftKeyPressed;
 	bool bLMBDown;
@@ -156,4 +165,6 @@ public:
 	FORCEINLINE AWeapon* GetEquippedWeapon() { return EquippedWeapon; }
 
 	FORCEINLINE void SetCombatTarget(AEnemy* Target) { CombatTarget = Target; }
+
+	FORCEINLINE void SetHasCombatTarget(bool HasTarget) { bHasCombatTarget = HasTarget; }
 };

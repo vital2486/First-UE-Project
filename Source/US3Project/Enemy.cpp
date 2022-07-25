@@ -13,6 +13,7 @@
 #include "Sound/SoundCue.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Animation/AnimInstance.h"
+#include "MainPlayerController.h"
 #include "TimerManager.h"
 
 // Sets default values
@@ -112,6 +113,15 @@ void AEnemy::AggroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, A
 		{
 			if (Main)
 			{
+				if (Main->CombatTarget == this)
+				{
+					Main->SetCombatTarget(nullptr);
+				}
+				Main->SetHasCombatTarget(false);
+				if (Main->MainPlayerController)
+				{
+					Main->MainPlayerController->RemoveEnemyHealthBar();
+				}
 				SetEnemyMovementStatus(EEnemyMovementStatus::EMS_Idle);
 				if (AIController)
 				{
@@ -131,6 +141,11 @@ void AEnemy::CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent
 			if (Main)
 			{
 				Main->SetCombatTarget(this);
+				Main->SetHasCombatTarget(true);
+				if (Main->MainPlayerController)
+				{
+					Main->MainPlayerController->DisplayEnemyHealthBar();
+				}
 				CombatTarget = Main;
 				bOverlappingCombatSphere = true;
 				Attack();
