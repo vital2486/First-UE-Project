@@ -195,6 +195,15 @@ void AMain::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	
 }
 
+float AMain::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	DecrementHealth(DamageAmount);
+	return DamageAmount;
+}
+
+
 void AMain::MoveForward(float Value)
 {
 	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking))
@@ -297,7 +306,12 @@ void AMain::DecrementHealth(float Amount)
 
 void AMain::Die()
 {
-
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && CombatMontage)
+	{
+		AnimInstance->Montage_Play(CombatMontage, 1.f);
+		AnimInstance->Montage_JumpToSection(FName("Death"));
+	}
 }
 
 void AMain::IncrementCoins(int32 Amount)
