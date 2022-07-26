@@ -9,21 +9,22 @@
 UENUM(BlueprintType)
 enum class EMovementStatus : uint8
 {
-	EMS_Normal UMETA(DisplayName = "Normal"),
-	EMS_Sprinting UMETA(DisplayName = "Sprinting"),
+	EMS_Normal		UMETA(DisplayName = "Normal"),
+	EMS_Sprinting	UMETA(DisplayName = "Sprinting"),
+	EMS_Dead		UMETA(DisplayName = "Dead"),
 
-	EMS_MAX UMETA(DisplayName = "DefaultMax")
+	EMS_MAX			UMETA(DisplayName = "DefaultMax")
 };
 
 UENUM(BlueprintType)
 enum class EStaminaStatus : uint8
 {
-	ESS_Normal UMETA(DisplayName = "Normal"),
-	ESS_BelowMinimum UMETA(DisplayName = "BelowMinimum"),
-	ESS_Exhausted UMETA(DisplayName = "Exhausted"),
-	ESS_ExhaustedRecovering UMETA(DisplayName = "ExhaustedRecovering"),
+	ESS_Normal				UMETA(DisplayName = "Normal"),
+	ESS_BelowMinimum		UMETA(DisplayName = "BelowMinimum"),
+	ESS_Exhausted			UMETA(DisplayName = "Exhausted"),
+	ESS_ExhaustedRecovering	UMETA(DisplayName = "ExhaustedRecovering"),
 
-	ESS_MAX UMETA(DisplayName = "Default Max")
+	ESS_MAX					UMETA(DisplayName = "Default Max")
 };
 
 UCLASS()
@@ -109,6 +110,9 @@ public:
 	bool bShiftKeyPressed;
 	bool bLMBDown;
 	bool bInterpToEnemy;
+	bool bMovingForward;
+	bool bMovingRight;
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -122,6 +126,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual void Jump() override;
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -139,6 +145,9 @@ public:
 
 	void DecrementHealth(float Amount);
 	void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void DeathEnd();
 
 	void IncrementCoins(int32 Amount);
 

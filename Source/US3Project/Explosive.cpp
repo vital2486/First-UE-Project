@@ -2,6 +2,8 @@
 
 #include "Explosive.h"
 #include "Main.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 AExplosive::AExplosive()
 {
@@ -16,6 +18,15 @@ void AExplosive::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor
 
 	if (OtherActor)
 	{
+		if (OverlapParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), OverlapParticles, GetActorLocation(), FRotator(0.f), true);
+		}
+		if (OverlapSound)
+		{
+			UGameplayStatics::PlaySound2D(this, OverlapSound);
+		}
+
 		AMain* Main = Cast<AMain>(OtherActor);
 		if (Main)
 		{

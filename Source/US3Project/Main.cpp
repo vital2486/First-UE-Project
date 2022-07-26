@@ -62,6 +62,8 @@ AMain::AMain()
 	bLMBDown = false;
 	bInterpToEnemy = false;
 	bHasCombatTarget = false;
+	bMovingForward = false;
+	bMovingRight = false;
 
 	MovementStatus = EMovementStatus::EMS_Normal;
 	StaminaStatus = EStaminaStatus::ESS_Normal;
@@ -82,21 +84,42 @@ void AMain::Tick(float DeltaTime)
 
 	float DeltaStamina = StaminaDrainRate * DeltaTime;
 
-	switch(StaminaStatus)
+	switch (StaminaStatus)
 	{
-	case EStaminaStatus::ESS_Normal : 
+	case EStaminaStatus::ESS_Normal:
 		if (bShiftKeyPressed)
 		{
 			if (Stamina - DeltaStamina <= MinSprintStamina)
 			{
 				SetStaminaStatus(EStaminaStatus::ESS_BelowMinimum);
-				Stamina -= DeltaStamina;
+				if (MovementStatus == EMovementStatus::EMS_Sprinting)
+				{
+					Stamina -= DeltaStamina;
+				}
 			}
 			else
 			{
-				Stamina -= DeltaStamina;
+				if (MovementStatus == EMovementStatus::EMS_Sprinting)
+				{
+					Stamina -= DeltaStamina;
+				}
 			}
-			SetMovementStatus(EMovementStatus::EMS_Sprinting);
+			if (bMovingForward || bMovingRight)
+			{
+				SetMovementStatus(EMovementStatus::EMS_Sprinting);
+			}
+			else
+			{
+				SetMovementStatus(EMovementStatus::EMS_Normal);
+				if (Stamina + DeltaStamina >= MaxStamina)
+				{
+					Stamina = MaxStamina;
+				}
+				else
+				{
+					Stamina += DeltaStamina;
+				}
+			}
 		}
 		else
 		{
@@ -111,7 +134,7 @@ void AMain::Tick(float DeltaTime)
 			SetMovementStatus(EMovementStatus::EMS_Normal);
 		}
 		break;
-	case EStaminaStatus::ESS_BelowMinimum : 
+	case EStaminaStatus::ESS_BelowMinimum:
 		if (bShiftKeyPressed)
 		{
 			if (Stamina - DeltaStamina <= 0.f)
@@ -122,7 +145,26 @@ void AMain::Tick(float DeltaTime)
 			}
 			else
 			{
-				Stamina -= DeltaStamina;
+				if (MovementStatus == EMovementStatus::EMS_Sprinting)
+				{
+					Stamina -= DeltaStamina;
+				}
+				if (bMovingForward || bMovingRight)
+				{
+					SetMovementStatus(EMovementStatus::EMS_Sprinting);
+				}
+				else
+				{
+					SetMovementStatus(EMovementStatus::EMS_Normal);
+					if (Stamina + DeltaStamina >= MaxStamina)
+					{
+						Stamina = MaxStamina;
+					}
+					else
+					{
+						Stamina += DeltaStamina;
+					}
+				}
 			}
 		}
 		else
@@ -139,7 +181,7 @@ void AMain::Tick(float DeltaTime)
 			SetMovementStatus(EMovementStatus::EMS_Normal);
 		}
 		break;
-	case EStaminaStatus::ESS_Exhausted : 
+	case EStaminaStatus::ESS_Exhausted:
 		if (bShiftKeyPressed)
 		{
 			Stamina = 0.f;
@@ -151,7 +193,7 @@ void AMain::Tick(float DeltaTime)
 		}
 		SetMovementStatus(EMovementStatus::EMS_Normal);
 		break;
-	case EStaminaStatus::ESS_ExhaustedRecovering : 
+	case EStaminaStatus::ESS_ExhaustedRecovering:
 		if (Stamina + DeltaStamina >= MinSprintStamina)
 		{
 			SetStaminaStatus(EStaminaStatus::ESS_Normal);
@@ -163,7 +205,7 @@ void AMain::Tick(float DeltaTime)
 		}
 		SetMovementStatus(EMovementStatus::EMS_Normal);
 		break;
-	default : 
+	default:
 		;
 	}
 
@@ -198,7 +240,7 @@ void AMain::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("TurnRate", this, &AMain::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookupRate", this, &AMain::LookupRate);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMain::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AMain::ShiftKeyPressed);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AMain::ShiftKeyReleased);
@@ -211,32 +253,63 @@ float AMain::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEve
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	DecrementHealth(DamageAmount);
+	if (Health - DamageAmount <= 0.f)
+	{
+		Health -= DamageAmount;
+		Die();
+		if (DamageCauser)
+		{
+			AEnemy* Enemy = Cast<AEnemy>(DamageCauser);
+			if (Enemy)
+			{
+				Enemy->bHasValidTarget = false;
+			}
+		}
+	}
+	else
+	{
+		Health -= DamageAmount;
+	}
 	return DamageAmount;
 }
 
+void AMain::Jump()
+{
+	if (MovementStatus != EMovementStatus::EMS_Dead)
+	{
+		Super::Jump();
+	}
+}
 
 void AMain::MoveForward(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking))
+	bMovingForward = false;
+
+	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking) && (MovementStatus != EMovementStatus::EMS_Dead))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
+
+		bMovingForward = true;
 	}
 }
 
 void AMain::MoveRight(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking))
+	bMovingRight = false;
+
+	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking) && (MovementStatus != EMovementStatus::EMS_Dead))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		AddMovementInput(Direction, Value);
+
+		bMovingRight = true;
 	}
 }
 
@@ -252,7 +325,7 @@ void AMain::LookupRate(float Rate)
 
 void AMain::Attack()
 {
-	if (!bAttacking)
+	if (!bAttacking && MovementStatus != EMovementStatus::EMS_Dead)
 	{
 		bAttacking = true;
 		//공격할 때 Enemy를 target으로 인지하여 바라보도록 한다.
@@ -318,12 +391,23 @@ void AMain::DecrementHealth(float Amount)
 
 void AMain::Die()
 {
+	if (MovementStatus == EMovementStatus::EMS_Dead)
+	{
+		return;
+	}
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
 	{
 		AnimInstance->Montage_Play(CombatMontage, 1.f);
 		AnimInstance->Montage_JumpToSection(FName("Death"));
 	}
+	SetMovementStatus(EMovementStatus::EMS_Dead);
+}
+
+void AMain::DeathEnd()
+{
+	GetMesh()->bPauseAnims = true;
+	GetMesh()->bNoSkeletonUpdate = true;
 }
 
 void AMain::IncrementCoins(int32 Amount)
@@ -370,6 +454,11 @@ void AMain::ShiftKeyReleased()
 void AMain::LMBDown()
 {
 	bLMBDown = true;
+
+	if (MovementStatus == EMovementStatus::EMS_Dead)
+	{
+		return;
+	}
 
 	if (ActiveOverlappingItem)
 	{

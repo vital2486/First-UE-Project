@@ -43,6 +43,7 @@ AEnemy::AEnemy()
 
 	bOverlappingCombatSphere = false;
 	bAttacking = false;
+	bHasValidTarget = false;
 
 	EnemyMovementStatus = EEnemyMovementStatus::EMS_Idle;
 }
@@ -113,6 +114,7 @@ void AEnemy::AggroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, A
 		{
 			if (Main)
 			{
+				bHasValidTarget = false;
 				if (Main->CombatTarget == this)
 				{
 					Main->SetCombatTarget(nullptr);
@@ -140,6 +142,7 @@ void AEnemy::CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent
 		{
 			if (Main)
 			{
+				bHasValidTarget = true;
 				Main->SetCombatTarget(this);
 				Main->SetHasCombatTarget(true);
 				if (Main->MainPlayerController)
@@ -258,7 +261,7 @@ void AEnemy::MoveToTarget(AMain* Target)
 
 void AEnemy::Attack()
 {
-	if (Alive())
+	if (Alive() && bHasValidTarget)
 	{
 		if (AIController)
 		{
