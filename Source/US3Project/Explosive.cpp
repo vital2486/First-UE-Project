@@ -2,6 +2,7 @@
 
 #include "Explosive.h"
 #include "Main.h"
+#include "Enemy.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
@@ -28,9 +29,10 @@ void AExplosive::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor
 		}
 
 		AMain* Main = Cast<AMain>(OtherActor);
-		if (Main)
+		AEnemy* Enemy = Cast<AEnemy>(OtherActor);
+		if (Main || Enemy)
 		{
-			Main->DecrementHealth(Damage);
+			UGameplayStatics::ApplyDamage(OtherActor, Damage, nullptr, this, DamageTypeClass);
 		}
 		Destroy();
 	}
