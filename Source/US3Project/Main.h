@@ -77,6 +77,9 @@ public:
 	class AEnemy* CombatTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	TSubclassOf<AEnemy> EnemyFilter;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	class UParticleSystem* HitParticles;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
@@ -149,7 +152,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DeathEnd();
 
+	UFUNCTION(BlueprintCallable)
 	void IncrementCoins(int32 Amount);
+
+	UFUNCTION(BlueprintCallable)
+	void IncrementHealth(float Amount);
 
 	void SetMovementStatus(EMovementStatus Status);
 
@@ -164,6 +171,12 @@ public:
 	void SetInterpToEnemy(bool Interp);
 
 	FRotator GetLookAtRotationYaw(FVector Target);
+
+	/**
+	* 여러 Enemy와 동시에 전투를 하다가 하나를 죽였을 때
+	* 자동으로 Main의 CombatTarget을 변경하도록 도와준다.
+	*/
+	void UpdateCombatTarget();
 
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }

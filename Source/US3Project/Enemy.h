@@ -140,7 +140,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttackEnd();
 
-	void Die();
+	void Die(AActor* Causer);
 
 	UFUNCTION(BlueprintCallable)
 	void DeathEnd();
