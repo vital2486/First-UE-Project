@@ -178,6 +178,14 @@ public:
 	*/
 	void UpdateCombatTarget();
 
+	void SwitchLevel(FName LevelName);
+
+	UFUNCTION(BlueprintCallable)
+	void SaveGame();
+
+	UFUNCTION(BlueprintCallable)
+	void LoadGame(bool Setposition);
+
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
