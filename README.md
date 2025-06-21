@@ -1,6 +1,6 @@
-# 🎓 Graduation Project - 3D Action Game with Unreal Engine 5
+# 🎓 졸업 프로젝트 – 언리얼 엔진을 활용한 3D 액션 전투 시스템 구현
 
-> Unreal Engine 5를 처음 학습하며 제작한 졸업 프로젝트로,  
+> Unreal Engine 4를 처음 학습하며 제작한 졸업 프로젝트로,  
 > **전투 시스템 / AI 추적 / 무기 충돌 / 아이템 상호작용 / 세이브 / 레벨 전환 등**  
 > 실시간 액션 게임의 기초 시스템을 직접 구현해보는 것을 목표로 했습니다.
 
